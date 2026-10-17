@@ -19,6 +19,7 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { CallsService } from './calls.service';
+import { PresenceService } from '../gateways/presence.service';
 import { ReportCallDto } from './dto/report-call.dto';
 import { QueryCallsDto } from './dto/query-calls.dto';
 import { PrepareCallDto } from './dto/prepare-call.dto';
@@ -50,7 +51,18 @@ export class CallsController {
   constructor(
     private readonly callsService: CallsService,
     private readonly bookmarksService: BookmarksService,
+    private readonly presenceService: PresenceService,
   ) {}
+
+  @Get(':id/viewers')
+  @ApiOperation({ summary: 'Get the number of active viewers for a call' })
+  @ApiParam({ name: 'id', description: 'Call UUID' })
+  @ApiResponse({ status: 200, description: 'Active viewer count returned' })
+  async getViewers(@Param('id', ParseUUIDPipe) id: string) {
+    const call = await this.callsService.getCallOrThrow(id);
+    const count = await this.presenceService.getViewerCount(call.id);
+    return { callId: call.id, viewers: count };
+  }
 
   @Get('feed')
   @UseGuards(OptionalJwtAuthGuard)

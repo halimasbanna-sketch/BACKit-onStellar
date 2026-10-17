@@ -10,9 +10,11 @@ import { UsersResolver } from './resolvers/users.resolver';
 import { FeedResolver } from './resolvers/feed.resolver';
 import { LeaderboardResolver } from './resolvers/leaderboard.resolver';
 import { SearchResolver } from './resolvers/search.resolver';
+import { MarketResolver } from './resolvers/market.resolver';
 
-// ── DataLoader ───────────────────────────────────────────────────────────────
+// ── DataLoader / real-time ───────────────────────────────────────────────────
 import { DataLoaderService } from './dataloader/dataloader.service';
+import { PubSubService } from './pubsub.service';
 
 // ── Existing feature modules that export their services ──────────────────────
 import { CallsModule } from '../calls/calls.module';
@@ -46,6 +48,11 @@ import { Stake } from '../stakes/entities/stake.entity';
       // can read the Authorization header and attach req.user.
       context: ({ req }: { req: unknown }) => ({ req }),
 
+      // Real-time subscriptions over the graphql-ws transport.
+      subscriptions: {
+        'graphql-ws': true,
+      },
+
       buildSchemaOptions: {
         numberScalarMode: 'integer',
       },
@@ -71,6 +78,10 @@ import { Stake } from '../stakes/entities/stake.entity';
     FeedResolver,
     LeaderboardResolver,
     SearchResolver,
+    MarketResolver,
+
+    // ── PubSub for GraphQL subscriptions ─────────────────────────────────────
+    PubSubService,
 
     // ── SearchService: declared here because SearchModule doesn't export it ──
     // DataSource is provided globally by TypeOrmModule.forRoot in AppModule.
